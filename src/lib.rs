@@ -29,7 +29,7 @@
 //! let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]);
 //! ```
 //!
-//! After Handlebars replaces **{{{text}}}** to your text, the HTML will be,
+//! After Handlebars replaces **{{{text}}}** with your text, the HTML will be,
 //!
 //! ```html
 //! <script>
