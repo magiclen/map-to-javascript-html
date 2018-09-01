@@ -26,16 +26,17 @@
 //! map.insert("welcome", "Welcome to my website.");
 //! map.insert("other keys", "Hello world!");
 //!
-//! let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]);
+//! let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]).unwrap();
 //! ```
+//!
+//! If you want your text to be beautified, you can use `hash_map_to_javascript_html_beautify` function.
 //!
 //! After Handlebars replaces **{{{text}}}** with your text, the HTML will be,
 //!
 //! ```html
 //! <script>
 //! var _text = {};
-//! _text['welcome'] = 'Welcome to my website.';
-//! _text['hello'] = 'Hello world!';
+//! _text['welcome']='Welcome to my website.';_text['hello']='Hello world!';
 //! </script>
 //! ```
 //!
@@ -79,7 +80,7 @@ fn escape_html_script_text(text: &str) -> String {
 
     for index in index_array {
         s.push_str(&text[offset..(index + 1)]);
-        s.push_str(r"\");
+        s.push('\\');
         offset = index + 1;
     }
 
@@ -104,7 +105,7 @@ fn escape_quote(text: &str) -> String {
             offset = 1;
         } else {
             s.push_str(&text[offset..end - 1]);
-            s.push_str(r"\");
+            s.push('\\');
 
             offset = end - 1;
         }
@@ -121,12 +122,11 @@ fn replace_new_line(text: &str) -> String {
     regex.replace_all(text, r"\n").to_string()
 }
 
+/// Convert a HashMap to minified JavaScript code in HTML.
 pub fn hash_map_to_javascript_html<K: Display + Eq + Hash, V: Display>(hash_map: &HashMap<K, V>, variable_name: &str, keys: &[K]) -> Result<String, String> {
     let mut s = String::new();
 
-    let len_dec = keys.len() - 1;
-
-    for (index, key) in keys.iter().enumerate() {
+    for key in keys.iter() {
         let k = key.to_string();
 
         let v = match hash_map.get(key) {
@@ -134,13 +134,65 @@ pub fn hash_map_to_javascript_html<K: Display + Eq + Hash, V: Display>(hash_map:
             None => return Err(format!("`{}` is not found.", k))
         };
 
-        s.push_str(&format!("{}['{}'] = '{}'", variable_name, escape_html_script_text(&replace_new_line(&escape_quote(&k))), escape_html_script_text(&replace_new_line(&escape_quote(&v)))));
+        s.push_str(&format!("{}['{}']='{}';", variable_name, escape_html_script_text(&replace_new_line(&escape_quote(&k))), escape_html_script_text(&replace_new_line(&escape_quote(&v)))));
+    }
 
-        if index < len_dec {
-            s.push_str(";\n");
+    Ok(s)
+}
+
+/// Convert a HashMap to beautified JavaScript code in HTML.
+pub fn hash_map_to_javascript_html_beautify<K: Display + Eq + Hash, V: Display>(hash_map: &HashMap<K, V>, variable_name: &str, keys: &[K], spaces_a_tab: u8, tab_count: u8) -> Result<String, String> {
+    let mut s = String::new();
+
+    let mut indices = Vec::new();
+
+    for key in keys.iter() {
+        let k = key.to_string();
+
+        let v = match hash_map.get(key) {
+            Some(s) => s.to_string(),
+            None => return Err(format!("`{}` is not found.", k))
+        };
+
+        indices.push(s.len());
+
+        s.push_str(&format!("{}['{}'] = '{}';", variable_name, escape_html_script_text(&replace_new_line(&escape_quote(&k))), escape_html_script_text(&replace_new_line(&escape_quote(&v)))));
+    }
+
+    let len = indices.len();
+
+    if len > 0 {
+        let n;
+        let tab;
+
+        if spaces_a_tab > 0 {
+            n = spaces_a_tab as usize * tab_count as usize;
+
+            tab = ' ';
         } else {
-            s.push_str(";");
+            n = tab_count as usize;
+
+            tab = '\t';
         }
+
+        let tab_n = {
+            let mut s = String::with_capacity(n);
+
+            for _ in 0..n {
+                s.push(tab);
+            }
+
+            s
+        };
+
+        s.reserve(n + (n + 1) * (len - 1));
+
+        for &i in indices[1..].iter().rev() {
+            s.insert(i, '\n');
+            s.insert_str(i + 1, &tab_n);
+        }
+
+        s.insert_str(0, &tab_n);
     }
 
     Ok(s)
@@ -151,7 +203,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn text_hash_map_to_javascript_html() {
         let mut map: HashMap<&str, &str> = HashMap::new();
 
         map.insert("test-1", "Test 1!");
@@ -163,11 +215,48 @@ mod tests {
 
         let html = hash_map_to_javascript_html(&map, "text", &vec!["test-1", "test-2", "test-'3'", r"test-\'4\'", "script", r"'中'文"]).unwrap();
 
+        assert_eq!(r#"text['test-1']='Test 1!';text['test-2']='Test 2!';text['test-\'3\'']='Test \'3\'!';text['test-\'4\'']='Test \'4\'!';text['script']='<script>alert(\'Hello world!\');<\/script>';text['\'中\'文']='<script>alert(\'Hello world!\');<\/script><script>alert(\'哈囉，世界！\');<\/script>';"#, html);
+    }
+
+    #[test]
+    fn text_hash_map_to_javascript_beautify_1() {
+        let mut map: HashMap<&str, &str> = HashMap::new();
+
+        map.insert("test-1", "Test 1!");
+        map.insert("test-2", "Test 2!");
+        map.insert("test-'3'", "Test '3'!");
+        map.insert(r"test-\'4\'", r"Test \'4\'!");
+        map.insert("script", "<script>alert('Hello world!');</script>");
+        map.insert(r"'中'文", "<script>alert('Hello world!');</script><script>alert('哈囉，世界！');</script>");
+
+        let html = hash_map_to_javascript_html_beautify(&map, "text", &vec!["test-1", "test-2", "test-'3'", r"test-\'4\'", "script", r"'中'文"], 0, 0).unwrap();
+
         assert_eq!(r#"text['test-1'] = 'Test 1!';
 text['test-2'] = 'Test 2!';
 text['test-\'3\''] = 'Test \'3\'!';
 text['test-\'4\''] = 'Test \'4\'!';
 text['script'] = '<script>alert(\'Hello world!\');<\/script>';
 text['\'中\'文'] = '<script>alert(\'Hello world!\');<\/script><script>alert(\'哈囉，世界！\');<\/script>';"#, html);
+    }
+
+    #[test]
+    fn text_hash_map_to_javascript_beautify_2() {
+        let mut map: HashMap<&str, &str> = HashMap::new();
+
+        map.insert("test-1", "Test 1!");
+        map.insert("test-2", "Test 2!");
+        map.insert("test-'3'", "Test '3'!");
+        map.insert(r"test-\'4\'", r"Test \'4\'!");
+        map.insert("script", "<script>alert('Hello world!');</script>");
+        map.insert(r"'中'文", "<script>alert('Hello world!');</script><script>alert('哈囉，世界！');</script>");
+
+        let html = hash_map_to_javascript_html_beautify(&map, "text", &vec!["test-1", "test-2", "test-'3'", r"test-\'4\'", "script", r"'中'文"], 12, 1).unwrap();
+
+        assert_eq!(r#"            text['test-1'] = 'Test 1!';
+            text['test-2'] = 'Test 2!';
+            text['test-\'3\''] = 'Test \'3\'!';
+            text['test-\'4\''] = 'Test \'4\'!';
+            text['script'] = '<script>alert(\'Hello world!\');<\/script>';
+            text['\'中\'文'] = '<script>alert(\'Hello world!\');<\/script><script>alert(\'哈囉，世界！\');<\/script>';"#, html);
     }
 }

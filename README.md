@@ -31,16 +31,17 @@ map.insert("hello", "Hello world!");
 map.insert("welcome", "Welcome to my website.");
 map.insert("other keys", "Hello world!");
 
-let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]);
+let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]).unwrap();
 ```
+
+If you want your text to be beautified, you can use `hash_map_to_javascript_html_beautify` function.
 
 After Handlebars replaces **{{{text}}}** with your text, the HTML will be,
 
 ```html
 <script>
 var _text = {};
-_text['welcome'] = 'Welcome to my website.';
-_text['hello'] = 'Hello world!';
+_text['welcome']='Welcome to my website.';_text['hello']='Hello world!';
 </script>
 ```
 
