@@ -1,8 +1,52 @@
+//! # Map to JavaScript in HTML
+//! This is a library for serializing a (hash) map to JavaScript code in HTML, usually for dynamically generating strings on web pages.
+//!
+//! # Example
+//!
+//! In your HTML or templates to generate HTML, such as Handlebars, for instance,
+//!
+//! ```html
+//! <script>
+//! var _text = {};
+//! {{{text}}}
+//! </script>
+//! ```
+//!
+//! Then, you can use this crate to insert your text into JavaScript code in HTML,
+//!
+//! ```
+//! extern crate map_to_javascript_html;
+//!
+//! use map_to_javascript_html::hash_map_to_javascript_html;
+//! use std::collections::HashMap;
+//!
+//! let mut map = HashMap::new();
+//!
+//! map.insert("hello", "Hello world!");
+//! map.insert("welcome", "Welcome to my website.");
+//! map.insert("other keys", "Hello world!");
+//!
+//! let text = hash_map_to_javascript_html(&map, "_text", &["welcome", "hello"]);
+//! ```
+//!
+//! After Handlebars replaces **{{{text}}}** to your text, the HTML will be,
+//!
+//! ```html
+//! <script>
+//! var _text = {};
+//! _text['welcome'] = 'Welcome to my website.';
+//! _text['hello'] = 'Hello world!';
+//! </script>
+//! ```
+//!
+//! The key and the value used in a map must implement the `Display` trait.
+
 extern crate regex;
 
 use std::collections::HashMap;
 use std::cmp::Eq;
 use std::hash::Hash;
+use std::fmt::Display;
 
 use regex::Regex;
 
@@ -77,7 +121,7 @@ fn replace_new_line(text: &str) -> String {
     regex.replace_all(text, r"\n").to_string()
 }
 
-pub fn hash_map_to_javascript_html<K: ToString + Eq + Hash, V: ToString>(hash_map: &HashMap<K, V>, variable_name: &str, keys: &[K]) -> Result<String, String> {
+pub fn hash_map_to_javascript_html<K: Display + Eq + Hash, V: Display>(hash_map: &HashMap<K, V>, variable_name: &str, keys: &[K]) -> Result<String, String> {
     let mut s = String::new();
 
     let len_dec = keys.len() - 1;
