@@ -43,6 +43,8 @@
 //! The key and the value used in a map must implement the `Display` trait.
 
 extern crate regex;
+#[macro_use]
+extern crate lazy_static;
 
 use std::collections::HashMap;
 use std::cmp::Eq;
@@ -50,6 +52,12 @@ use std::hash::Hash;
 use std::fmt::Display;
 
 use regex::Regex;
+
+lazy_static! {
+    static ref ESCAPE_QUOTE_RE: Regex = {
+        Regex::new(r"([^\\]')|(^')").unwrap()
+    };
+}
 
 fn find_all(text: &str, search: &str) -> Vec<usize> {
     let mut result = Vec::new();
@@ -90,13 +98,11 @@ fn escape_html_script_text(text: &str) -> String {
 }
 
 fn escape_quote(text: &str) -> String {
-    let regex = Regex::new(r"([^\\]')|(^')").unwrap();
-
     let mut s = String::new();
 
     let mut offset = 0;
 
-    for m in regex.find_iter(text) {
+    for m in ESCAPE_QUOTE_RE.find_iter(text) {
         let start = m.start();
         let end = m.end();
 
@@ -117,9 +123,17 @@ fn escape_quote(text: &str) -> String {
 }
 
 fn replace_new_line(text: &str) -> String {
-    let regex = Regex::new(r"\n").unwrap();
+    let mut result = String::with_capacity(text.len());
 
-    regex.replace_all(text, r"\n").to_string()
+    for c in text.chars() {
+        if c == '\n' {
+            continue;
+        }
+
+        result.push(c);
+    }
+
+    result
 }
 
 /// Convert a HashMap to minified JavaScript code in HTML.

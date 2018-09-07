@@ -1,6 +1,6 @@
 [package]
 name = "map-to-javascript-html"
-version = "1.1.1"
+version = "1.1.2"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/map-to-javascript-html"
 homepage = "https://magiclen.org/map-to-javascript-html"
@@ -16,3 +16,4 @@ appveyor = { repository = "magiclen/map-to-javascript-html", branch = "master", 
 
 [dependencies]
 regex = "1.0.2"
+lazy_static = "1.1"
