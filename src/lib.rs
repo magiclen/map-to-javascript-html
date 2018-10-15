@@ -41,6 +41,8 @@
 //! ```
 //!
 //! The key and the value used in a map must implement the `Display` trait.
+//!
+//! By the way, the `text_to_javascript_html` function can be useful when you just want to insert text as a JavaScript string into your HTML code.
 
 extern crate regex;
 #[macro_use]
@@ -136,6 +138,14 @@ fn replace_new_line(text: &str) -> String {
     result
 }
 
+/// Convert text to a JavaScript string with single quotes in HTML.
+pub fn text_to_javascript_html(text: &str) -> String {
+    let mut string = escape_html_script_text(&replace_new_line(&escape_quote(text)));
+    string.insert(0, '\'');
+    string.push('\'');
+    string
+}
+
 /// Convert a HashMap to minified JavaScript code in HTML.
 pub fn hash_map_to_javascript_html<K: Display + Eq + Hash, V: Display>(hash_map: &HashMap<K, V>, variable_name: &str, keys: &[K]) -> Result<String, String> {
     let mut s = String::new();
@@ -148,7 +158,7 @@ pub fn hash_map_to_javascript_html<K: Display + Eq + Hash, V: Display>(hash_map:
             None => return Err(format!("`{}` is not found.", k))
         };
 
-        s.push_str(&format!("{}['{}']='{}';", variable_name, escape_html_script_text(&replace_new_line(&escape_quote(&k))), escape_html_script_text(&replace_new_line(&escape_quote(&v)))));
+        s.push_str(&format!("{}[{}]={};", variable_name, text_to_javascript_html(&k), text_to_javascript_html(&v)));
     }
 
     Ok(s)
@@ -170,7 +180,7 @@ pub fn hash_map_to_javascript_html_beautify<K: Display + Eq + Hash, V: Display>(
 
         indices.push(s.len());
 
-        s.push_str(&format!("{}['{}'] = '{}';", variable_name, escape_html_script_text(&replace_new_line(&escape_quote(&k))), escape_html_script_text(&replace_new_line(&escape_quote(&v)))));
+        s.push_str(&format!("{}[{}] = {};", variable_name, text_to_javascript_html(&k), text_to_javascript_html(&v)));
     }
 
     let len = indices.len();

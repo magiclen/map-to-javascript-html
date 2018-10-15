@@ -47,6 +47,8 @@ _text['welcome']='Welcome to my website.';_text['hello']='Hello world!';
 
 The key and the value used in a map must implement the `Display` trait.
 
+By the way, the `text_to_javascript_html` function can be useful when you just want to insert text as a JavaScript string into your HTML code.
+
 ## Crates.io
 
 https://crates.io/crates/map-to-javascript-html
