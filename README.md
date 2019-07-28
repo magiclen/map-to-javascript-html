@@ -2,7 +2,6 @@ Map to JavaScript in HTML
 ====================
 
 [![Build Status](https://travis-ci.org/magiclen/map-to-javascript-html.svg?branch=master)](https://travis-ci.org/magiclen/map-to-javascript-html)
-[![Build status](https://ci.appveyor.com/api/projects/status/a0t05l2qxbqp9902/branch/master?svg=true)](https://ci.appveyor.com/project/magiclen/map-to-javascript-html/branch/master)
 
 This is a library for serializing a (hash) map to JavaScript code in HTML, usually for dynamically generating strings on web pages.
 
