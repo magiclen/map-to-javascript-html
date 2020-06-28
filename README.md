@@ -5,7 +5,7 @@ Map to JavaScript in HTML
 
 This is a library for serializing a map to JavaScript code in HTML, usually for dynamically generating strings on web pages.
 
-## Example
+## Usage
 
 In your HTML or templates to generate HTML, such as Handlebars, for instance,
 
