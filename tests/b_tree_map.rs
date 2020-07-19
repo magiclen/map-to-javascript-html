@@ -12,17 +12,18 @@ fn to_javascript_html() {
 
     let mut map: BTreeMap<u8, &str> = BTreeMap::new();
     map.insert(1, "Test 1'!");
-    assert_eq!(r"text[1]='Test 1\'!';", map.to_javascript_html("text"));
+    assert_eq!(r"text['1']='Test 1\'!';", map.to_javascript_html("text"));
 
     let mut map: BTreeMap<u8, u8> = BTreeMap::new();
     map.insert(1, 2);
-    assert_eq!("text[1]=2;", map.to_javascript_html("text"));
+    assert_eq!("text['1']='2';", map.to_javascript_html("text"));
 
     let mut map: BTreeMap<&str, u8> = BTreeMap::new();
     map.insert("test-1'", 2);
-    assert_eq!(r"text['test-1\'']=2;", map.to_javascript_html("text"));
+    assert_eq!(r"text['test-1\'']='2';", map.to_javascript_html("text"));
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn to_javascript_html_to_writer() {
     let mut s = String::new();
@@ -36,19 +37,19 @@ fn to_javascript_html_to_writer() {
     map.insert(1, "Test 1'!");
     s.clear();
     map.to_javascript_html_to_writer("text", unsafe { s.as_mut_vec() }).unwrap();
-    assert_eq!(r"text[1]='Test 1\'!';", s);
+    assert_eq!(r"text['1']='Test 1\'!';", s);
 
     let mut map: BTreeMap<u8, u8> = BTreeMap::new();
     map.insert(1, 2);
     s.clear();
     map.to_javascript_html_to_writer("text", unsafe { s.as_mut_vec() }).unwrap();
-    assert_eq!("text[1]=2;", s);
+    assert_eq!("text['1']='2';", s);
 
     let mut map: BTreeMap<&str, u8> = BTreeMap::new();
     map.insert("test-1'", 2);
     s.clear();
     map.to_javascript_html_to_writer("text", unsafe { s.as_mut_vec() }).unwrap();
-    assert_eq!(r"text['test-1\'']=2;", s);
+    assert_eq!(r"text['test-1\'']='2';", s);
 }
 
 #[test]
@@ -70,6 +71,7 @@ fn to_javascript_html_complex() {
     assert_eq!(expect, map.to_javascript_html("text"));
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn to_javascript_html_to_writer_complex() {
     let mut map: BTreeMap<&str, &str> = BTreeMap::new();
@@ -103,6 +105,7 @@ fn to_javascript_html_with_keys() {
     assert_eq!("text['test-3']=undefined;", map.to_javascript_html_with_keys("text", &["test-3"]));
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn to_javascript_html_with_keys_to_writer() {
     let mut map: BTreeMap<&str, &str> = BTreeMap::new();

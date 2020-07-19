@@ -22,6 +22,7 @@ fn to_javascript_html() {
     assert_eq!("text['test-1']=[1,2,3,4,5];", map.to_javascript_html("text"));
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn to_javascript_html_to_writer() {
     let mut s = String::new();
@@ -54,6 +55,7 @@ fn to_javascript_html_with_keys() {
     assert_eq!("text['test-3']=undefined;", map.to_javascript_html_with_keys("text", &["test-3"]));
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn to_javascript_html_with_keys_to_writer() {
     let mut map = Map::new();

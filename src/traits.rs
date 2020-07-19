@@ -1,8 +1,13 @@
-use std::borrow::Borrow;
-use std::fmt::Display;
-use std::hash::Hash;
+use core::borrow::Borrow;
+use core::fmt::Display;
+use core::hash::Hash;
+use core::str::from_utf8_unchecked;
+
+use alloc::string::String;
+use alloc::vec::Vec;
+
+#[cfg(feature = "std")]
 use std::io::{self, Write};
-use std::str::from_utf8_unchecked;
 
 /// Serializing a map to JavaScript code in HTML.
 pub trait MapToJavaScriptHTML<K> {
@@ -35,6 +40,7 @@ pub trait MapToJavaScriptHTML<K> {
         output: &'a mut Vec<u8>,
     ) -> &'a [u8];
 
+    #[cfg(feature = "std")]
     /// Convert this map to minified JavaScript code in HTML. Write it to a writer. Be careful of the `variable_name` which will not be encoded in HTML.
     fn to_javascript_html_to_writer<S: Display, W: Write>(
         &self,
@@ -90,6 +96,7 @@ pub trait MapToJavaScriptHTML<K> {
     where
         K: Borrow<KS>;
 
+    #[cfg(feature = "std")]
     /// Convert this map to minified JavaScript code in HTML. Write it to a writer. If the key doesn't exist, the output value will be `undefined`. Be careful of the `variable_name` which will not be encoded in HTML.
     fn to_javascript_html_with_keys_to_writer<
         S: Display,

@@ -1,10 +1,14 @@
 extern crate serde_json;
 
-use std::borrow::Borrow;
-use std::fmt::Display;
-use std::hash::Hash;
+use core::borrow::Borrow;
+use core::fmt::Display;
+use core::hash::Hash;
+
+use alloc::string::String;
+use alloc::vec::Vec;
+
+#[cfg(feature = "std")]
 use std::io::{self, Write};
-use std::string::ToString;
 
 use crate::{html_escape, MapToJavaScriptHTML};
 
@@ -23,13 +27,13 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_vec(
             output.extend_from_slice(b"\';");
         }
         Value::Bool(b) => {
-            output.write_fmt(format_args!("{};", b)).unwrap();
+            output.extend_from_slice(format!("{};", b).as_bytes());
         }
         Value::Number(n) => {
-            output.write_fmt(format_args!("{};", n)).unwrap();
+            output.extend_from_slice(format!("{};", n).as_bytes());
         }
         Value::Object(_) | Value::Array(_) => {
-            let json = value.to_string();
+            let json = format!("{}", value);
 
             html_escape::encode_script_to_vec(json, output);
             output.push(b';');
@@ -37,6 +41,7 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_vec(
     }
 }
 
+#[cfg(feature = "std")]
 #[inline]
 fn value_to_javascript_value_end_with_semicolon_in_html_to_writer<W: Write>(
     value: &Value,
@@ -52,7 +57,7 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_writer<W: Write>(
         Value::Bool(b) => output.write_fmt(format_args!("{};", b)),
         Value::Number(n) => output.write_fmt(format_args!("{};", n)),
         Value::Object(_) | Value::Array(_) => {
-            let json = value.to_string();
+            let json = format!("{}", value);
 
             html_escape::encode_script_to_writer(json, output)?;
             output.write_all(b";")
@@ -66,7 +71,7 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         variable_name: S,
         output: &'a mut Vec<u8>,
     ) -> &'a [u8] {
-        let variable_name = variable_name.to_string();
+        let variable_name = format!("{}", variable_name);
 
         let current_length = output.len();
 
@@ -83,12 +88,13 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         &output[current_length..]
     }
 
+    #[cfg(feature = "std")]
     fn to_javascript_html_to_writer<S: Display, W: Write>(
         &self,
         variable_name: S,
         output: &mut W,
     ) -> Result<(), io::Error> {
-        let variable_name = variable_name.to_string();
+        let variable_name = format!("{}", variable_name);
 
         for (key, value) in self {
             output.write_all(variable_name.as_bytes())?;
@@ -110,7 +116,7 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
     ) -> &'a [u8]
     where
         String: Borrow<KS>, {
-        let variable_name = variable_name.to_string();
+        let variable_name = format!("{}", variable_name);
 
         let current_length = output.len();
 
@@ -119,7 +125,7 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         for key in keys.iter() {
             output.extend_from_slice(variable_name.as_bytes());
             output.extend_from_slice(b"['");
-            html_escape::encode_script_single_quoted_text_to_vec(key.to_string(), output);
+            html_escape::encode_script_single_quoted_text_to_vec(format!("{}", key), output);
             output.extend_from_slice(b"']=");
             match self.get(key) {
                 Some(value) => {
@@ -134,6 +140,7 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         &output[current_length..]
     }
 
+    #[cfg(feature = "std")]
     fn to_javascript_html_with_keys_to_writer<
         S: Display,
         W: Write,
@@ -146,12 +153,12 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
     ) -> Result<(), io::Error>
     where
         String: Borrow<KS>, {
-        let variable_name = variable_name.to_string();
+        let variable_name = format!("{}", variable_name);
 
         for key in keys.iter() {
             output.write_all(variable_name.as_bytes())?;
             output.write_all(b"['")?;
-            html_escape::encode_script_single_quoted_text_to_writer(key.to_string(), output)?;
+            html_escape::encode_script_single_quoted_text_to_writer(format!("{}", key), output)?;
             output.write_all(b"']=")?;
             match self.get(key) {
                 Some(value) => {

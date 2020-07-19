@@ -67,6 +67,16 @@ let text = map.to_javascript_html_with_keys("_text", &["hello", "welcome"]);
 assert_eq!("_text['hello']='Hello world!';_text['welcome']='Welcome to my website.';", text);
 ```
 
+## No Std
+
+Disable the default features to compile this crate without std.
+
+```toml
+[dependencies.map-to-javascript-html]
+version = "*"
+default-features = false
+```
+
 ## Serde Support
 
 To support the maps from the `serde` framework, enable the `serde` feature.
@@ -78,9 +88,13 @@ features = ["serde"]
 ```
 */
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[macro_use]
+extern crate alloc;
+
 extern crate html_escape;
 
-mod functions;
 mod maps;
 mod traits;
 
