@@ -1,6 +1,6 @@
 [package]
 name = "map-to-javascript-html"
-version = "2.0.3"
+version = "2.0.4"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/map-to-javascript-html"
@@ -11,10 +11,6 @@ description = "A library for serializing a map to JavaScript code in HTML usuall
 readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
-
-[badges.travis-ci]
-repository = "magiclen/map-to-javascript-html"
-branch = "master"
 
 [dependencies]
 html-escape = "0.2"
