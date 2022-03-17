@@ -1,5 +1,3 @@
-extern crate serde_json;
-
 use core::borrow::Borrow;
 use core::fmt::Display;
 use core::hash::Hash;
@@ -10,7 +8,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
-use crate::{html_escape, MapToJavaScriptHTML};
+use crate::MapToJavaScriptHTML;
 
 use serde_json::{Map, Value};
 

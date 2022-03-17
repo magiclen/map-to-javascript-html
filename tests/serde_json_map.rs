@@ -1,8 +1,5 @@
 #![cfg(feature = "serde_json")]
 
-extern crate map_to_javascript_html;
-extern crate serde_json;
-
 use serde_json::{Map, Value};
 
 use map_to_javascript_html::MapToJavaScriptHTML;

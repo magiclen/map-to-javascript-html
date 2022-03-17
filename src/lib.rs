@@ -17,8 +17,6 @@ var _text = {};
 Then, you can use the `MapToJavaScriptHTML` trait to insert your text from a map,
 
 ```rust
-extern crate map_to_javascript_html;
-
 use std::collections::BTreeMap;
 
 use map_to_javascript_html::MapToJavaScriptHTML;
@@ -50,8 +48,6 @@ Methods suffixed with `_to_string`, `_to_vec`, `_to_writer` can be used to gener
 There are also methods prefixed with `to_javascript_html_with_keys` which can be used with keys to filter the output.
 
 ```rust
-extern crate map_to_javascript_html;
-
 use std::collections::BTreeMap;
 
 use map_to_javascript_html::MapToJavaScriptHTML;
@@ -92,8 +88,6 @@ features = ["serde"]
 
 #[macro_use]
 extern crate alloc;
-
-extern crate html_escape;
 
 mod maps;
 mod traits;

@@ -1,8 +1,8 @@
 [package]
 name = "map-to-javascript-html"
-version = "2.0.4"
+version = "2.0.5"
 authors = ["Magic Len <len@magiclen.org>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/magiclen/map-to-javascript-html"
 homepage = "https://magiclen.org/map-to-javascript-html"
 keywords = ["map", "javascript", "html", "hashmap", "btreemap"]

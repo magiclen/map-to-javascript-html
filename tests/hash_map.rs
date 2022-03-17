@@ -1,7 +1,5 @@
 #![cfg(feature = "std")]
 
-extern crate map_to_javascript_html;
-
 use std::collections::HashMap;
 
 use map_to_javascript_html::MapToJavaScriptHTML;

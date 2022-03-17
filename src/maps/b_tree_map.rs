@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
-use crate::{html_escape, MapToJavaScriptHTML};
+use crate::MapToJavaScriptHTML;
 
 impl<K: Display + Ord, V: Display> MapToJavaScriptHTML<K> for BTreeMap<K, V> {
     fn to_javascript_html_to_vec<'a, S: Display>(

@@ -1,5 +1,3 @@
-extern crate map_to_javascript_html;
-
 use std::collections::BTreeMap;
 
 use map_to_javascript_html::MapToJavaScriptHTML;
