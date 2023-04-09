@@ -1,9 +1,5 @@
-use core::borrow::Borrow;
-use core::fmt::Display;
-use core::hash::Hash;
-
 use alloc::vec::Vec;
-
+use core::{borrow::Borrow, fmt::Display, hash::Hash};
 #[cfg(feature = "std")]
 use std::collections::HashMap;
 #[cfg(feature = "std")]
@@ -83,10 +79,10 @@ impl<K: Display + Eq + Hash, V: Display> MapToJavaScriptHTML<K> for HashMap<K, V
                         output,
                     );
                     output.extend_from_slice(b"';");
-                }
+                },
                 None => {
                     output.extend_from_slice(b"undefined;");
-                }
+                },
             }
         }
 
@@ -121,10 +117,10 @@ impl<K: Display + Eq + Hash, V: Display> MapToJavaScriptHTML<K> for HashMap<K, V
                         output,
                     )?;
                     output.write_all(b"';")?;
-                }
+                },
                 None => {
                     output.write_all(b"undefined;")?;
-                }
+                },
             }
         }
 

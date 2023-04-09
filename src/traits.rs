@@ -1,11 +1,5 @@
-use core::borrow::Borrow;
-use core::fmt::Display;
-use core::hash::Hash;
-use core::str::from_utf8_unchecked;
-
-use alloc::string::String;
-use alloc::vec::Vec;
-
+use alloc::{string::String, vec::Vec};
+use core::{borrow::Borrow, fmt::Display, hash::Hash, str::from_utf8_unchecked};
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 

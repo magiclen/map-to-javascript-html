@@ -1,16 +1,11 @@
-use core::borrow::Borrow;
-use core::fmt::Display;
-use core::hash::Hash;
-
-use alloc::string::String;
-use alloc::vec::Vec;
-
+use alloc::{string::String, vec::Vec};
+use core::{borrow::Borrow, fmt::Display, hash::Hash};
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
-use crate::MapToJavaScriptHTML;
-
 use serde_json::{Map, Value};
+
+use crate::MapToJavaScriptHTML;
 
 #[inline]
 fn value_to_javascript_value_end_with_semicolon_in_html_to_vec(
@@ -23,19 +18,19 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_vec(
             output.push(b'\'');
             html_escape::encode_script_single_quoted_text_to_vec(s, output);
             output.extend_from_slice(b"\';");
-        }
+        },
         Value::Bool(b) => {
             output.extend_from_slice(format!("{};", b).as_bytes());
-        }
+        },
         Value::Number(n) => {
             output.extend_from_slice(format!("{};", n).as_bytes());
-        }
+        },
         Value::Object(_) | Value::Array(_) => {
             let json = format!("{}", value);
 
             html_escape::encode_script_to_vec(json, output);
             output.push(b';');
-        }
+        },
     }
 }
 
@@ -51,7 +46,7 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_writer<W: Write>(
             output.write_all(b"'")?;
             html_escape::encode_script_single_quoted_text_to_writer(s, output)?;
             output.write_all(b"\';")
-        }
+        },
         Value::Bool(b) => output.write_fmt(format_args!("{};", b)),
         Value::Number(n) => output.write_fmt(format_args!("{};", n)),
         Value::Object(_) | Value::Array(_) => {
@@ -59,7 +54,7 @@ fn value_to_javascript_value_end_with_semicolon_in_html_to_writer<W: Write>(
 
             html_escape::encode_script_to_writer(json, output)?;
             output.write_all(b";")
-        }
+        },
     }
 }
 
@@ -128,10 +123,10 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
             match self.get(key) {
                 Some(value) => {
                     value_to_javascript_value_end_with_semicolon_in_html_to_vec(value, output);
-                }
+                },
                 None => {
                     output.extend_from_slice(b"undefined;");
-                }
+                },
             }
         }
 
@@ -161,10 +156,10 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
             match self.get(key) {
                 Some(value) => {
                     value_to_javascript_value_end_with_semicolon_in_html_to_writer(value, output)?;
-                }
+                },
                 None => {
                     output.write_all(b"undefined;")?;
-                }
+                },
             }
         }
 

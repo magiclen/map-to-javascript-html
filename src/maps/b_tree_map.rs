@@ -1,9 +1,5 @@
-use core::borrow::Borrow;
-use core::fmt::Display;
-
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
-
+use alloc::{collections::BTreeMap, vec::Vec};
+use core::{borrow::Borrow, fmt::Display};
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
@@ -81,10 +77,10 @@ impl<K: Display + Ord, V: Display> MapToJavaScriptHTML<K> for BTreeMap<K, V> {
                         output,
                     );
                     output.extend_from_slice(b"';");
-                }
+                },
                 None => {
                     output.extend_from_slice(b"undefined;");
-                }
+                },
             }
         }
 
@@ -115,10 +111,10 @@ impl<K: Display + Ord, V: Display> MapToJavaScriptHTML<K> for BTreeMap<K, V> {
                         output,
                     )?;
                     output.write_all(b"';")?;
-                }
+                },
                 None => {
                     output.write_all(b"undefined;")?;
-                }
+                },
             }
         }
 

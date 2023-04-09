@@ -1,8 +1,7 @@
 #![cfg(feature = "serde_json")]
 
-use serde_json::{Map, Value};
-
 use map_to_javascript_html::MapToJavaScriptHTML;
+use serde_json::{Map, Value};
 
 #[test]
 fn to_javascript_html() {
