@@ -1,4 +1,4 @@
-#![cfg(feature = "serde_json")]
+#![cfg(feature = "serde")]
 
 use map_to_javascript_html::MapToJavaScriptHTML;
 use serde_json::{Map, Value};

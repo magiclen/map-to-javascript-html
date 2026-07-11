@@ -92,5 +92,4 @@ extern crate alloc;
 mod maps;
 mod traits;
 
-pub use maps::*;
 pub use traits::*;
