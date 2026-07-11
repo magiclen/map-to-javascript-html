@@ -29,7 +29,7 @@ map.insert("other keys", "Hello world!");
 
 let text = map.to_javascript_html("_text");
 
-assert_eq!("_text['hello']='Hello world!';_text['other keys']='Hello world!';_text['welcome']='Welcome to my website.';", text);
+assert_eq!(r#"_text["hello"]="Hello world!";_text["other keys"]="Hello world!";_text["welcome"]="Welcome to my website.";"#, text);
 ```
 
 After Handlebars replaces **{{{text}}}** with your text, the HTML will be,
@@ -37,7 +37,7 @@ After Handlebars replaces **{{{text}}}** with your text, the HTML will be,
 ```html
 <script>
 var _text = {};
-_text['hello']='Hello world!';_text['other keys']='Hello world!';_text['welcome']='Welcome to my website.';
+_text["hello"]="Hello world!";_text["other keys"]="Hello world!";_text["welcome"]="Welcome to my website.";
 </script>
 ```
 
@@ -60,7 +60,7 @@ map.insert("other keys", "Hello world!");
 
 let text = map.to_javascript_html_with_keys("_text", &["hello", "welcome"]);
 
-assert_eq!("_text['hello']='Hello world!';_text['welcome']='Welcome to my website.';", text);
+assert_eq!(r#"_text["hello"]="Hello world!";_text["welcome"]="Welcome to my website.";"#, text);
 ```
 
 ## No Std
@@ -75,7 +75,7 @@ default-features = false
 
 ## Serde Support
 
-To support the maps from the `serde` framework, enable the `serde` feature.
+To support map data structures from the `serde` framework, enable the `serde` feature. Currently, this feature supports `serde_json::Map`.
 
 ```toml
 [dependencies.map-to-javascript-html]
@@ -89,6 +89,7 @@ features = ["serde"]
 #[macro_use]
 extern crate alloc;
 
+mod encode;
 mod maps;
 mod traits;
 

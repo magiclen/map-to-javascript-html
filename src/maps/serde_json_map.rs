@@ -1,61 +1,36 @@
 use alloc::{string::String, vec::Vec};
-use core::{borrow::Borrow, fmt::Display, hash::Hash};
+use core::{borrow::Borrow, fmt::Display, hash::Hash, str::from_utf8_unchecked};
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
 use serde_json::{Map, Value};
 
-use crate::MapToJavaScriptHTML;
+#[cfg(feature = "std")]
+use crate::encode::{encode_display_to_writer, encode_serializable_to_writer};
+use crate::{
+    encode::{encode_display_to_vec, encode_serializable_to_vec},
+    MapToJavaScriptHTML,
+};
 
 #[inline]
 fn value_to_javascript_value_end_with_semicolon_in_html_to_vec(
     value: &Value,
+    scratch: &mut Vec<u8>,
     output: &mut Vec<u8>,
 ) {
-    match value {
-        Value::Null => output.extend_from_slice(b"null;"),
-        Value::String(s) => {
-            output.push(b'\'');
-            html_escape::encode_script_single_quoted_text_to_vec(s, output);
-            output.extend_from_slice(b"\';");
-        },
-        Value::Bool(b) => {
-            output.extend_from_slice(format!("{};", b).as_bytes());
-        },
-        Value::Number(n) => {
-            output.extend_from_slice(format!("{};", n).as_bytes());
-        },
-        Value::Object(_) | Value::Array(_) => {
-            let json = format!("{}", value);
-
-            html_escape::encode_script_to_vec(json, output);
-            output.push(b';');
-        },
-    }
+    encode_serializable_to_vec(value, scratch, output);
+    output.push(b';');
 }
 
 #[cfg(feature = "std")]
 #[inline]
 fn value_to_javascript_value_end_with_semicolon_in_html_to_writer<W: Write>(
     value: &Value,
+    scratch: &mut Vec<u8>,
     output: &mut W,
 ) -> Result<(), io::Error> {
-    match value {
-        Value::Null => output.write_all(b"null;"),
-        Value::String(s) => {
-            output.write_all(b"'")?;
-            html_escape::encode_script_single_quoted_text_to_writer(s, output)?;
-            output.write_all(b"\';")
-        },
-        Value::Bool(b) => output.write_fmt(format_args!("{};", b)),
-        Value::Number(n) => output.write_fmt(format_args!("{};", n)),
-        Value::Object(_) | Value::Array(_) => {
-            let json = format!("{}", value);
-
-            html_escape::encode_script_to_writer(json, output)?;
-            output.write_all(b";")
-        },
-    }
+    encode_serializable_to_writer(value, scratch, output)?;
+    output.write_all(b";")
 }
 
 impl MapToJavaScriptHTML<String> for Map<String, Value> {
@@ -69,16 +44,33 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         let current_length = output.len();
 
         output.reserve((variable_name.len() + 11) * self.len());
+        let mut scratch = Vec::new();
 
         for (key, value) in self {
             output.extend_from_slice(variable_name.as_bytes());
-            output.extend_from_slice(b"['");
-            html_escape::encode_script_single_quoted_text_to_vec(key, output);
-            output.extend_from_slice(b"']=");
-            value_to_javascript_value_end_with_semicolon_in_html_to_vec(value, output);
+            output.push(b'[');
+            encode_display_to_vec(key, &mut scratch, output);
+            output.extend_from_slice(b"]=");
+            value_to_javascript_value_end_with_semicolon_in_html_to_vec(
+                value,
+                &mut scratch,
+                output,
+            );
         }
 
         &output[current_length..]
+    }
+
+    #[inline]
+    fn to_javascript_html_to_string<'a, S: Display>(
+        &self,
+        variable_name: S,
+        output: &'a mut String,
+    ) -> &'a str {
+        // SAFETY: This implementation only appends UTF-8 produced by formatting, serde_json, and ASCII constants.
+        unsafe {
+            from_utf8_unchecked(self.to_javascript_html_to_vec(variable_name, output.as_mut_vec()))
+        }
     }
 
     #[cfg(feature = "std")]
@@ -88,13 +80,18 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         output: &mut W,
     ) -> Result<(), io::Error> {
         let variable_name = format!("{}", variable_name);
+        let mut scratch = Vec::new();
 
         for (key, value) in self {
             output.write_all(variable_name.as_bytes())?;
-            output.write_all(b"['")?;
-            html_escape::encode_script_single_quoted_text_to_writer(key, output)?;
-            output.write_all(b"']=")?;
-            value_to_javascript_value_end_with_semicolon_in_html_to_writer(value, output)?;
+            output.write_all(b"[")?;
+            encode_display_to_writer(key, &mut scratch, output)?;
+            output.write_all(b"]=")?;
+            value_to_javascript_value_end_with_semicolon_in_html_to_writer(
+                value,
+                &mut scratch,
+                output,
+            )?;
         }
 
         Ok(())
@@ -113,16 +110,21 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
 
         let current_length = output.len();
 
-        output.reserve((variable_name.len() + 11) * self.len());
+        output.reserve((variable_name.len() + 11) * keys.len());
+        let mut scratch = Vec::new();
 
-        for key in keys.iter() {
+        for key in keys {
             output.extend_from_slice(variable_name.as_bytes());
-            output.extend_from_slice(b"['");
-            html_escape::encode_script_single_quoted_text_to_vec(format!("{}", key), output);
-            output.extend_from_slice(b"']=");
+            output.push(b'[');
+            encode_display_to_vec(*key, &mut scratch, output);
+            output.extend_from_slice(b"]=");
             match self.get(key) {
                 Some(value) => {
-                    value_to_javascript_value_end_with_semicolon_in_html_to_vec(value, output);
+                    value_to_javascript_value_end_with_semicolon_in_html_to_vec(
+                        value,
+                        &mut scratch,
+                        output,
+                    );
                 },
                 None => {
                     output.extend_from_slice(b"undefined;");
@@ -131,6 +133,29 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
         }
 
         &output[current_length..]
+    }
+
+    #[inline]
+    fn to_javascript_html_with_keys_to_string<
+        'a,
+        S: Display,
+        KS: ?Sized + Display + Ord + Eq + Hash,
+    >(
+        &self,
+        variable_name: S,
+        keys: &[&KS],
+        output: &'a mut String,
+    ) -> &'a str
+    where
+        String: Borrow<KS>, {
+        // SAFETY: This implementation only appends UTF-8 produced by formatting, serde_json, and ASCII constants.
+        unsafe {
+            from_utf8_unchecked(self.to_javascript_html_with_keys_to_vec(
+                variable_name,
+                keys,
+                output.as_mut_vec(),
+            ))
+        }
     }
 
     #[cfg(feature = "std")]
@@ -147,15 +172,20 @@ impl MapToJavaScriptHTML<String> for Map<String, Value> {
     where
         String: Borrow<KS>, {
         let variable_name = format!("{}", variable_name);
+        let mut scratch = Vec::new();
 
-        for key in keys.iter() {
+        for key in keys {
             output.write_all(variable_name.as_bytes())?;
-            output.write_all(b"['")?;
-            html_escape::encode_script_single_quoted_text_to_writer(format!("{}", key), output)?;
-            output.write_all(b"']=")?;
+            output.write_all(b"[")?;
+            encode_display_to_writer(*key, &mut scratch, output)?;
+            output.write_all(b"]=")?;
             match self.get(key) {
                 Some(value) => {
-                    value_to_javascript_value_end_with_semicolon_in_html_to_writer(value, output)?;
+                    value_to_javascript_value_end_with_semicolon_in_html_to_writer(
+                        value,
+                        &mut scratch,
+                        output,
+                    )?;
                 },
                 None => {
                     output.write_all(b"undefined;")?;

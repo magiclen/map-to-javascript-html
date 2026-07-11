@@ -1,5 +1,5 @@
 use alloc::{string::String, vec::Vec};
-use core::{borrow::Borrow, fmt::Display, hash::Hash, str::from_utf8_unchecked};
+use core::{borrow::Borrow, fmt::Display, hash::Hash, str::from_utf8};
 #[cfg(feature = "std")]
 use std::io::{self, Write};
 
@@ -22,9 +22,14 @@ pub trait MapToJavaScriptHTML<K> {
         variable_name: S,
         output: &'a mut String,
     ) -> &'a str {
-        unsafe {
-            from_utf8_unchecked(self.to_javascript_html_to_vec(variable_name, output.as_mut_vec()))
-        }
+        let mut buffer = Vec::new();
+        let html = self.to_javascript_html_to_vec(variable_name, &mut buffer);
+        let html = from_utf8(html).expect("MapToJavaScriptHTML implementations must return UTF-8");
+        let current_length = output.len();
+
+        output.push_str(html);
+
+        &output[current_length..]
     }
 
     /// Convert this map to minified JavaScript code in HTML. Write it to an existing `Vec<u8>` and return a `u8` slice of the written HTML. Be careful of the `variable_name` which will not be encoded in HTML.
@@ -71,13 +76,14 @@ pub trait MapToJavaScriptHTML<K> {
     ) -> &'a str
     where
         K: Borrow<KS>, {
-        unsafe {
-            from_utf8_unchecked(self.to_javascript_html_with_keys_to_vec(
-                variable_name,
-                keys,
-                output.as_mut_vec(),
-            ))
-        }
+        let mut buffer = Vec::new();
+        let html = self.to_javascript_html_with_keys_to_vec(variable_name, keys, &mut buffer);
+        let html = from_utf8(html).expect("MapToJavaScriptHTML implementations must return UTF-8");
+        let current_length = output.len();
+
+        output.push_str(html);
+
+        &output[current_length..]
     }
 
     /// Convert this map to minified JavaScript code in HTML by given keys. Write it to an existing `Vec<u8>` and return a `u8` slice of the written HTML. If the key doesn't exist, the output value will be `undefined`. Be careful of the `variable_name` which will not be encoded in HTML.

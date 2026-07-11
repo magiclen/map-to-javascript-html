@@ -1,9 +1,9 @@
 [package]
 name = "map-to-javascript-html"
-version = "2.0.5"
+version = "2.1.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
-rust-version = "1.58"
+rust-version = "1.71"
 repository = "https://github.com/magiclen/map-to-javascript-html"
 homepage = "https://magiclen.org/map-to-javascript-html"
 keywords = ["map", "javascript", "html", "hashmap", "btreemap"]
@@ -13,15 +13,15 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-html-escape = "0.2"
-
-serde_json = { version = "1", optional = true }
+html-escape = { version = "0.2", default-features = false }
+serde = { version = "1.0.100", default-features = false }
+serde_json = { version = "1.0.45", default-features = false, features = ["alloc"] }
 
 [features]
 default = ["std"]
-std = []
+std = ["html-escape/std", "serde/std", "serde_json/std"]
 
-serde = ["dep:serde_json"]
+serde = []
 
 [package.metadata.docs.rs]
 all-features = true
