@@ -1,6 +1,6 @@
 [package]
 name = "map-to-javascript-html"
-version = "2.1.0"
+version = "2.1.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
 rust-version = "1.71"
@@ -25,3 +25,4 @@ serde = []
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
